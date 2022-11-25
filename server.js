@@ -28,13 +28,21 @@ app.post('/', async function(req, res) {
   const body = req.body;
   const text = body.Body;
   const id = body.From;
-  console.log(body);
   const dialogflowResponse = (await sessionClient.detectIntent(
-      text, id, body)).fulfillmentText;
-  const twiml = new  MessagingResponse();
-  const message = twiml.message(dialogflowResponse);
-  console.log(twiml.toString());
-  res.send(twiml.toString());
+       text, id, body)).fulfillmentMessages;
+  dialogflowResponse.forEach(async message => {
+    if (message.message === 'text') {
+      var msg = message.text.text[0];
+      console.log(msg);
+      await client.messages
+        .create({
+          to: body.From,
+          from: body.To,
+          body: msg
+        })
+    }
+  });
+  res.send();
 });
 
 process.on('SIGTERM', () => {
